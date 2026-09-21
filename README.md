@@ -175,6 +175,12 @@ El proyecto se encuentra en estado funcional para la capa de persistencia y cump
 - Código principal: src/main/java/com/pulsepass/pulsepass
 - Pruebas: src/test/java/com/pulsepass/pulsepass
 
+## URL del repositorio
+- https://github.com/nromero-4/pulsepass
+
+## URL del branch
+- https://github.com/nromero-4/pulsepass/tree/feature/artists
+
 ## Nota final
 
 Este proyecto está orientado a demostrar la construcción de un modelo de persistencia realista y verificable en PostgreSQL, con foco en integridad, trazabilidad y pruebas de integración, siguiendo el enfoque académico del caso de estudio.
