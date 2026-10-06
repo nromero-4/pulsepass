@@ -55,9 +55,9 @@ class PersistenceIntegrationTest {
         Venue venue = new Venue("VEN-SMR-01", "Marina Convention Center", "Santa Marta", "Calle 1", 5000);
         venueRepository.save(venue);
 
-        Artist solarBeat = artistRepository.findByStageName("Solar Beat")
+        Artist solarBeat = artistRepository.findByStageNameIgnoreCase("Solar Beat")
             .orElseGet(() -> artistRepository.save(new Artist("Solar Beat", "Colombia", "Electronic")));
-        Artist neonWaves = artistRepository.findByStageName("Neon Waves")
+        Artist neonWaves = artistRepository.findByStageNameIgnoreCase("Neon Waves")
             .orElseGet(() -> artistRepository.save(new Artist("Neon Waves", "Argentina", "Synth Pop")));
 
         Event event = new Event(
@@ -115,7 +115,7 @@ class PersistenceIntegrationTest {
     @Test
     void shouldFindEventsByArtistAndTicketSales() {
         Venue venue = venueRepository.save(new Venue("VEN-SALES-01", "Sales Arena", "Medellin", "Cra 1", 1000));
-        Artist artist = artistRepository.findByStageName("Solar Beat")
+        Artist artist = artistRepository.findByStageNameIgnoreCase("Solar Beat")
             .orElseGet(() -> artistRepository.save(new Artist("Solar Beat", "Colombia", "Electronic")));
 
         Event event = eventRepository.save(new Event(
