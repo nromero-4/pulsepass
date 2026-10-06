@@ -2,7 +2,7 @@ package com.pulsepass.pulsepass.repository;
 
 import com.pulsepass.pulsepass.domain.Event;
 import com.pulsepass.pulsepass.enums.EventStatus;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByEventCode(String eventCode);
+       boolean existsByEventCode(String eventCode);
 
     List<Event> findByStatusOrderByEventDateAsc(EventStatus status);
 
@@ -28,7 +29,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
            "WHERE e.status = :status AND e.eventDate >= :date AND v.city = :city AND lower(a.stageName) LIKE lower(concat('%', :artistText, '%')) " +
            "ORDER BY e.eventDate ASC")
     List<Event> findRecommendedEvents(@Param("status") EventStatus status,
-                                      @Param("date") LocalDate date,
+                                      @Param("date") LocalDateTime date,
                                       @Param("city") String city,
                                       @Param("artistText") String artistText);
 }

@@ -14,6 +14,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByUserEmailIgnoreCase(String email);
 
+    List<Ticket> findByUserEmailIgnoreCaseOrderByPurchaseDateDesc(String email);
+
     List<Ticket> findByUserEmailIgnoreCaseAndStatus(String email, TicketStatus status);
 
     @Query("SELECT t FROM Ticket t JOIN t.event e WHERE e.eventCode = :eventCode AND t.status = :status")
