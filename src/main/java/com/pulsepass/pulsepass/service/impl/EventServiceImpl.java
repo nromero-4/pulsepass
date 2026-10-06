@@ -15,7 +15,7 @@ import com.pulsepass.pulsepass.repository.ArtistRepository;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.VenueRepository;
 import com.pulsepass.pulsepass.service.EventService;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +48,7 @@ public class EventServiceImpl implements EventService {
         if (!Boolean.TRUE.equals(venue.getActive())) {
             throw new BusinessRuleException("Cannot create an event at an inactive venue: " + request.venueCode());
         }
-        if (request.eventDate() == null || !request.eventDate().isAfter(LocalDate.now())) {
+        if (request.eventDate() == null || !request.eventDate().isAfter(LocalDateTime.now())) {
             throw new BusinessRuleException("Event date must be in the future.");
         }
         if (request.minimumAge() == null || request.minimumAge() < 0) {
@@ -79,7 +79,7 @@ public class EventServiceImpl implements EventService {
         if (event.getStatus() != EventStatus.DRAFT) {
             throw new BusinessRuleException("Only draft events can be published: " + eventCode);
         }
-        if (event.getEventDate() == null || !event.getEventDate().isAfter(LocalDate.now())) {
+        if (event.getEventDate() == null || !event.getEventDate().isAfter(LocalDateTime.now())) {
             throw new BusinessRuleException("Event date must be in the future to publish: " + eventCode);
         }
         if (!Boolean.TRUE.equals(event.getVenue().getActive())) {

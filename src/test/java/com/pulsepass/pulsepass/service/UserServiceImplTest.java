@@ -97,6 +97,25 @@ class UserServiceImplTest {
         assertThat(userService.findByEmail("ANDREA@EMAIL.COM")).isSameAs(response);
     }
 
+    @Test
+    void findByUsernameReturnsMappedUser() {
+        User user = new User("andrea", "andrea@email.com");
+        UserResponse response = response();
+        when(userRepository.findByUsername("andrea")).thenReturn(Optional.of(user));
+        when(userMapper.toResponse(user)).thenReturn(response);
+
+        assertThat(userService.findByUsername("andrea")).isSameAs(response);
+    }
+
+    @Test
+    void findByUsernameThrowsWhenUserDoesNotExist() {
+        when(userRepository.findByUsername("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.findByUsername("missing"))
+                .isInstanceOf(com.pulsepass.pulsepass.exception.ResourceNotFoundException.class)
+                .hasMessageContaining("missing");
+    }
+
     private RegisterUserRequest request(LocalDate birthDate) {
         return new RegisterUserRequest("andrea", "andrea@email.com", "Andrea", "Rojas",
                 "3001234567", "Santa Marta", birthDate);

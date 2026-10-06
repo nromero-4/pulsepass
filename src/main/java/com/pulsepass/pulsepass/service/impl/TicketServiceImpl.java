@@ -56,7 +56,7 @@ public class TicketServiceImpl implements TicketService {
         if (event.getStatus() != EventStatus.PUBLISHED) {
             throw new BusinessRuleException("Tickets can only be purchased for published events: " + request.eventCode());
         }
-        if (event.getEventDate() == null || event.getEventDate().isBefore(LocalDate.now())) {
+        if (event.getEventDate() == null || !event.getEventDate().isAfter(LocalDateTime.now())) {
             throw new BusinessRuleException("Tickets cannot be purchased after the event date: " + request.eventCode());
         }
         validateMinimumAge(user, event);
@@ -106,7 +106,7 @@ public class TicketServiceImpl implements TicketService {
         if (ticket.getStatus() != TicketStatus.PAID) {
             throw new BusinessRuleException("Only paid tickets can be cancelled: " + ticketCode);
         }
-        if (ticket.getEvent().getEventDate().isBefore(LocalDate.now())) {
+        if (!ticket.getEvent().getEventDate().isAfter(LocalDateTime.now())) {
             throw new BusinessRuleException("Tickets cannot be cancelled after the event date: " + ticketCode);
         }
 
@@ -138,7 +138,7 @@ public class TicketServiceImpl implements TicketService {
         }
 
         LocalDate birthDate = user.getProfile() == null ? null : user.getProfile().getBirthDate();
-        if (birthDate == null || Period.between(birthDate, event.getEventDate()).getYears() < minimumAge) {
+        if (birthDate == null || Period.between(birthDate, event.getEventDate().toLocalDate()).getYears() < minimumAge) {
             throw new BusinessRuleException("User does not meet the minimum age for event: " + event.getEventCode());
         }
     }

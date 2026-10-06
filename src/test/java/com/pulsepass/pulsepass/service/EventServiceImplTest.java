@@ -12,6 +12,7 @@ import com.pulsepass.pulsepass.domain.Event;
 import com.pulsepass.pulsepass.domain.Venue;
 import com.pulsepass.pulsepass.dto.request.CreateEventRequest;
 import com.pulsepass.pulsepass.dto.response.EventResponse;
+import com.pulsepass.pulsepass.dto.response.EventSummaryResponse;
 import com.pulsepass.pulsepass.enums.EventCategory;
 import com.pulsepass.pulsepass.enums.EventStatus;
 import com.pulsepass.pulsepass.exception.BusinessRuleException;
@@ -22,7 +23,7 @@ import com.pulsepass.pulsepass.repository.ArtistRepository;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.VenueRepository;
 import com.pulsepass.pulsepass.service.impl.EventServiceImpl;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,19 @@ class EventServiceImplTest {
         assertThatThrownBy(() -> eventService.findByCode("missing"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("missing");
+    }
+
+    @Test
+    void findPublishedEventsReturnsMappedSummaries() {
+        Event event = event(EventStatus.PUBLISHED, activeVenue());
+        EventSummaryResponse summary = summaryResponse();
+        when(eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED)).thenReturn(List.of(event));
+        when(eventMapper.toSummary(event)).thenReturn(summary);
+
+        List<EventSummaryResponse> result = eventService.findPublishedEvents();
+
+        assertThat(result).containsExactly(summary);
+        verify(eventRepository).findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED);
     }
 
     @Test
@@ -121,7 +135,7 @@ class EventServiceImplTest {
         when(eventRepository.existsByEventCode("EV-1")).thenReturn(false);
         when(venueRepository.findByCode("VEN-1")).thenReturn(Optional.of(activeVenue()));
 
-        assertThatThrownBy(() -> eventService.create(createRequest(LocalDate.now().minusDays(1))))
+        assertThatThrownBy(() -> eventService.create(createRequest(LocalDateTime.now().minusDays(1))))
                 .isInstanceOf(BusinessRuleException.class);
         verify(eventRepository, never()).save(any(Event.class));
     }
@@ -165,7 +179,7 @@ class EventServiceImplTest {
     @Test
     void publishRejectsPastEventWithoutSaving() {
         Event event = event(EventStatus.DRAFT, activeVenue());
-        event.setEventDate(LocalDate.now().minusDays(1));
+        event.setEventDate(LocalDateTime.now().minusDays(1));
         when(eventRepository.findByEventCode("EV-1")).thenReturn(Optional.of(event));
 
         assertThatThrownBy(() -> eventService.publish("EV-1"))
@@ -237,7 +251,20 @@ class EventServiceImplTest {
         verify(eventRepository, never()).save(any(Event.class));
     }
 
-    private CreateEventRequest createRequest(LocalDate eventDate) {
+    @Test
+    void findByArtistReturnsMappedSummaries() {
+        Event event = event(EventStatus.PUBLISHED, activeVenue());
+        EventSummaryResponse summary = summaryResponse();
+        when(eventRepository.findByArtistStageName("Solar Beat")).thenReturn(List.of(event));
+        when(eventMapper.toSummary(event)).thenReturn(summary);
+
+        List<EventSummaryResponse> result = eventService.findByArtist("Solar Beat");
+
+        assertThat(result).containsExactly(summary);
+        verify(eventRepository).findByArtistStageName("Solar Beat");
+    }
+
+    private CreateEventRequest createRequest(LocalDateTime eventDate) {
         return new CreateEventRequest("EV-1", "Event", "Description", EventCategory.MUSIC,
                 eventDate, 18, "VEN-1");
     }
@@ -251,12 +278,17 @@ class EventServiceImplTest {
         return new Venue("VEN-1", "Venue", "Santa Marta", "Address", 100);
     }
 
-    private LocalDate futureDate() {
-        return LocalDate.now().plusDays(30);
+    private LocalDateTime futureDate() {
+        return LocalDateTime.now().plusDays(30);
     }
 
     private EventResponse response(EventStatus status) {
         return new EventResponse(1L, "EV-1", "Event", "Description", EventCategory.MUSIC,
                 status, futureDate(), 18, "VEN-1", "Venue", List.of());
+    }
+
+    private EventSummaryResponse summaryResponse() {
+        return new EventSummaryResponse(1L, "EV-1", "Event", "Description", EventCategory.MUSIC,
+                EventStatus.PUBLISHED, futureDate(), 18, "VEN-1", "Venue", List.of());
     }
 }

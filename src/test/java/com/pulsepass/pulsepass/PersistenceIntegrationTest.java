@@ -66,7 +66,7 @@ class PersistenceIntegrationTest {
             "Festival de música",
             EventCategory.MUSIC,
             EventStatus.PUBLISHED,
-            LocalDate.of(2026, 6, 15),
+            LocalDateTime.of(2026, 6, 15, 19, 0),
             18,
             venue
         );
@@ -89,7 +89,7 @@ class PersistenceIntegrationTest {
             "Evento de ejemplo",
             EventCategory.ENTERTAINMENT,
             EventStatus.PUBLISHED,
-            LocalDate.of(2026, 9, 10),
+            LocalDateTime.of(2026, 9, 10, 19, 0),
             16,
             venue
         ));
@@ -124,7 +124,7 @@ class PersistenceIntegrationTest {
             "Descripcion",
             EventCategory.MUSIC,
             EventStatus.PUBLISHED,
-            LocalDate.of(2026, 7, 20),
+            LocalDateTime.of(2026, 7, 20, 19, 0),
             18,
             venue
         ));

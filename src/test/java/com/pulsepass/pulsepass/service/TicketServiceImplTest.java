@@ -124,6 +124,15 @@ class TicketServiceImplTest {
     }
 
     @Test
+    void purchaseRejectsCancelledEventWithoutSaving() {
+        stubPurchase(activeAdultUser(), event(EventStatus.CANCELLED, 3));
+
+        assertThatThrownBy(() -> ticketService.purchase(request(TicketType.GENERAL)))
+                .isInstanceOf(BusinessRuleException.class);
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
     void purchaseRejectsUnderageUserWithoutSaving() {
         User underageUser = userWithBirthDate(LocalDate.now().minusYears(17));
         stubPurchase(underageUser, event(EventStatus.PUBLISHED, 3));
@@ -224,7 +233,7 @@ class TicketServiceImplTest {
     @Test
     void cancelRejectsTicketAfterEventDateWithoutSaving() {
         Event pastEvent = event(EventStatus.PUBLISHED, 3);
-        pastEvent.setEventDate(LocalDate.now().minusDays(1));
+        pastEvent.setEventDate(LocalDateTime.now().minusDays(1));
         Ticket ticket = ticket(TicketStatus.PAID, pastEvent);
         when(ticketRepository.findByTicketCode("TCK-1")).thenReturn(Optional.of(ticket));
 
@@ -278,7 +287,7 @@ class TicketServiceImplTest {
     private Event event(EventStatus status, int capacity) {
         Venue venue = new Venue("VEN-1", "Venue", "Santa Marta", "Address", capacity);
         return new Event("EV-1", "Event", "Description", EventCategory.MUSIC,
-                status, LocalDate.now().plusDays(30), 18, venue);
+                status, LocalDateTime.now().plusDays(30), 18, venue);
     }
 
     private Ticket ticket(TicketStatus status, Event event) {

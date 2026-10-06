@@ -2,7 +2,7 @@ package com.pulsepass.pulsepass.dto.response;
 
 import com.pulsepass.pulsepass.enums.EventCategory;
 import com.pulsepass.pulsepass.enums.EventStatus;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record EventSummaryResponse(
@@ -12,7 +12,7 @@ public record EventSummaryResponse(
         String description,
         EventCategory category,
         EventStatus status,
-        LocalDate eventDate,
+        LocalDateTime eventDate,
         Integer minimumAge,
         String venueCode,
         String venueName,

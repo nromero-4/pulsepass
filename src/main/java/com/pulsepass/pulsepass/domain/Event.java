@@ -15,7 +15,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class Event {
     private EventStatus status;
 
     @Column(name = "event_date", nullable = false)
-    private LocalDate eventDate;
+    private LocalDateTime eventDate;
 
     @Column(name = "minimum_age", nullable = false)
     private Integer minimumAge;
@@ -69,7 +69,7 @@ public class Event {
     }
 
     public Event(String eventCode, String name, String description, EventCategory category,
-                 EventStatus status, LocalDate eventDate, Integer minimumAge, Venue venue) {
+                 EventStatus status, LocalDateTime eventDate, Integer minimumAge, Venue venue) {
         this.eventCode = eventCode;
         this.name = name;
         this.description = description;
@@ -124,11 +124,11 @@ public class Event {
         this.status = status;
     }
 
-    public LocalDate getEventDate() {
+    public LocalDateTime getEventDate() {
         return eventDate;
     }
 
-    public void setEventDate(LocalDate eventDate) {
+    public void setEventDate(LocalDateTime eventDate) {
         this.eventDate = eventDate;
     }
 
