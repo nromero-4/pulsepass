@@ -1,129 +1,140 @@
 # PulsePass
 
-PulsePass es un caso de estudio académico para la capa de persistencia de una plataforma de eventos. El proyecto modela el dominio de venues, eventos, artistas, usuarios, perfiles y tickets usando Java 21, Spring Boot 4, Spring Data JPA, Hibernate, PostgreSQL y Flyway.
-
-## Objetivo del proyecto
-
-Implementar un modelo relacional robusto que cumpla los requisitos del PRD, preservando integridad de datos y validando el comportamiento real con pruebas de integración contra PostgreSQL en contenedores Docker mediante Testcontainers.
+PulsePass es una API REST académica para consultar eventos, artistas y venues, registrar usuarios y gestionar tickets. Implementa las capas de persistencia, servicios y controladores con Java 21, Spring Boot 4, Spring MVC, Spring Data JPA, PostgreSQL y Flyway.
 
 ## Stack tecnológico
 
 - Java 21
 - Spring Boot 4.1.1
-- Spring Data JPA
-- Hibernate ORM
-- PostgreSQL
-- Flyway
+- Spring MVC y Bean Validation
+- Spring Data JPA e Hibernate
+- PostgreSQL y Flyway
 - Maven
-- Testcontainers
+- JUnit 5, Mockito y MockMvc
+- Testcontainers para pruebas de integración de persistencia
 
 ## Alcance
 
-Este proyecto está centrado en la persistencia y la lógica de datos. No incluye:
+La API expone operaciones sobre venues, eventos, artistas, usuarios y tickets. Los Controllers delegan reglas de negocio en los Services, reciben y devuelven DTOs, y usan un handler global para responder errores con un formato uniforme.
 
-- Frontend
-- API REST completa
-- Autenticación/autorización
-- Pasarela de pagos
-- Notificaciones o emails
-- Gestión administrativa avanzada
+No incluye frontend, autenticación/autorización, pasarela de pagos, notificaciones ni generación de códigos QR.
 
-## Modelo de dominio
+## Endpoints
 
-El proyecto cubre las siguientes entidades principales:
+Todas las rutas usan el prefijo `/api` y aceptan o responden JSON cuando corresponde.
 
-- Venue
-- Event
-- Artist
-- User
-- UserProfile
-- Ticket
+### Venues
 
-Además, incluye los enums principales:
+| Método | Ruta | Respuesta correcta |
+|---|---|---|
+| `GET` | `/api/venues/{code}` | `200 OK` |
+| `GET` | `/api/venues/active` | `200 OK` |
 
-- EventCategory
-- EventStatus
-- TicketType
-- TicketStatus
+### Eventos
 
-## Reglas de negocio implementadas
+| Método | Ruta | Respuesta correcta |
+|---|---|---|
+| `POST` | `/api/events` | `201 Created` |
+| `GET` | `/api/events/{eventCode}` | `200 OK` |
+| `GET` | `/api/events/published` | `200 OK` |
+| `PATCH` | `/api/events/{eventCode}/publish` | `200 OK` |
+| `POST` | `/api/events/{eventCode}/artists/{artistId}` | `200 OK` |
+| `GET` | `/api/events/by-artist?stageName={stageName}` | `200 OK` |
 
-- Códigos únicos de negocio
-- Restricciones de integridad en PostgreSQL
-- Validación de capacidad, precios y estados válidos
-- Relación 1:N entre venue y eventos
-- Relación N:M entre eventos y artistas
-- Relación 1:1 entre usuario y perfil
-- Relación 1:N entre usuario y tickets
-- Relación 1:N entre evento y tickets
+### Artistas
 
-## Estructura del proyecto
+| Método | Ruta | Respuesta correcta |
+|---|---|---|
+| `GET` | `/api/artists/{id}` | `200 OK` |
+| `GET` | `/api/artists/by-stage-name?stageName={stageName}` | `200 OK` |
+| `GET` | `/api/artists/active` | `200 OK` |
 
-```text
-pulsepass/
-├── src/
-│   ├── main/
-│   │   ├── java/com/pulsepass/pulsepass/
-│   │   │   ├── domain/
-│   │   │   ├── repository/
-│   │   │   └── PulsepassApplication.java
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── db/migration/
-│   └── test/java/com/pulsepass/pulsepass/
-│       ├── PersistenceIntegrationTest.java
-│       ├── TestcontainersConfiguration.java
-│       └── ...
-├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── PRD_PulsePass.md
-└── README.md
+### Usuarios
+
+| Método | Ruta | Respuesta correcta |
+|---|---|---|
+| `POST` | `/api/users` | `201 Created` |
+| `GET` | `/api/users/by-email?email={email}` | `200 OK` |
+| `GET` | `/api/users/by-username?username={username}` | `200 OK` |
+
+### Tickets
+
+| Método | Ruta | Respuesta correcta |
+|---|---|---|
+| `POST` | `/api/tickets` | `201 Created` |
+| `GET` | `/api/tickets/{ticketCode}` | `200 OK` |
+| `GET` | `/api/tickets/by-user?email={email}` | `200 OK` |
+| `GET` | `/api/events/{eventCode}/tickets/paid` | `200 OK` |
+| `PATCH` | `/api/tickets/{ticketCode}/cancel` | `200 OK` |
+| `PATCH` | `/api/tickets/{ticketCode}/use` | `200 OK` |
+
+Las creaciones validan el request antes de invocar al Service. Los errores se responden con `ErrorResponse`, que contiene `timestamp`, `status`, `error`, `message` y `details`. Los códigos principales son `400` para request inválido, `404` para recurso inexistente, `409` para conflictos de negocio y `500` para errores inesperados.
+
+## Ejemplos de requests
+
+Crear un evento:
+
+```json
+{
+	"eventCode": "CMF-2026",
+	"name": "Caribbean Music Fest 2026",
+	"description": "Festival de música del Caribe",
+	"category": "MUSIC",
+	"eventDate": "2026-11-01T19:00:00",
+	"minimumAge": 18,
+	"venueCode": "VEN-SMR-01"
+}
+```
+
+Registrar un usuario:
+
+```json
+{
+	"username": "andrea",
+	"email": "andrea@example.com",
+	"firstName": "Andrea",
+	"lastName": "Lopez",
+	"phone": "3001234567",
+	"city": "Santa Marta",
+	"birthDate": "2000-01-01"
+}
+```
+
+Comprar un ticket:
+
+```json
+{
+	"userEmail": "andrea@example.com",
+	"eventCode": "CMF-2026",
+	"type": "GENERAL"
+}
 ```
 
 ## Requisitos previos
 
-### Java
+- JDK 21 instalado y `JAVA_HOME` configurado.
+- Docker Desktop o Docker Engine activo para las pruebas de integración que usan Testcontainers.
+- Para ejecutar la aplicación, PostgreSQL debe estar disponible con la configuración indicada abajo.
 
-- JDK 21 instalado
-- Variable JAVA_HOME configurada
+## Base de datos
 
-### Maven
+La configuración predeterminada está en `src/main/resources/application.properties`:
 
-- Maven disponible en el sistema o usar el wrapper del proyecto
+- URL: `jdbc:postgresql://localhost:5432/pulsepass`
+- Usuario: `postgres`
+- Contraseña: `postgres`
 
-### Docker
-
-- Docker Desktop o Docker Engine activo
-- Requerido para Testcontainers cuando se ejecutan las pruebas de integración
-
-## Configuración de base de datos
-
-El proyecto está configurado con PostgreSQL usando variables de entorno por defecto:
-
-- URL: jdbc:postgresql://localhost:5432/pulsepass
-- Usuario: postgres
-- Contraseña: postgres
-
-La configuración está en:
-
-- src/main/resources/application.properties
-
-## Ejecutar pruebas
-
-Desde la raíz del proyecto:
+Para levantar PostgreSQL localmente con Docker:
 
 ```bash
-./mvnw test
+docker run --name pulsepass-db -e POSTGRES_DB=pulsepass -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
 ```
 
-En Windows PowerShell:
-
-```powershell
-./mvnw.cmd test
-```
+Las migraciones de Flyway están en `src/main/resources/db/migration/` y se aplican al iniciar la aplicación y durante las pruebas que configuran la base de datos.
 
 ## Ejecutar la aplicación
+
+Desde la raíz del proyecto, en macOS/Linux:
 
 ```bash
 ./mvnw spring-boot:run
@@ -132,55 +143,63 @@ En Windows PowerShell:
 En Windows PowerShell:
 
 ```powershell
-./mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
-## Levantar PostgreSQL con Docker (opcional para ejecución local)
+La aplicación queda disponible en `http://localhost:8080`.
+
+## Ejecutar las pruebas
+
+Ejecutar la suite completa:
 
 ```bash
-docker run --name pulsepass-db -e POSTGRES_DB=pulsepass -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+./mvnw clean test
 ```
 
-## Migraciones con Flyway
+En Windows PowerShell:
 
-Las migraciones se encuentran en:
+```powershell
+.\mvnw.cmd clean test
+```
 
-- src/main/resources/db/migration/
+Ejecutar únicamente las pruebas de Controllers, validación de DTOs y errores globales:
 
-Se ejecutan automáticamente al iniciar la aplicación y en pruebas de integración.
+```bash
+./mvnw "-Dtest=*ControllerTest,GlobalExceptionHandlerTest,RequestDtoValidationTest" test
+```
 
-## Verificación realizada
+En Windows PowerShell:
 
-Se validó la aplicación con la suite real del proyecto usando Maven y el resultado fue exitoso:
+```powershell
+.\mvnw.cmd "-Dtest=*ControllerTest,GlobalExceptionHandlerTest,RequestDtoValidationTest" test
+```
+
+Las pruebas de Controllers usan `@WebMvcTest`, MockMvc y Services simulados; no requieren PostgreSQL. La suite completa puede requerir Docker para las pruebas de persistencia con Testcontainers.
+
+## Estructura principal
 
 ```text
-EXIT:0
+src/main/java/com/pulsepass/pulsepass/
+├── controller/
+├── domain/
+├── dto/request/
+├── dto/response/
+├── exception/
+├── mapper/
+├── repository/
+└── service/
+
+src/test/java/com/pulsepass/pulsepass/
+├── controller/
+├── dto/request/
+├── exception/
+├── service/
+└── ...
 ```
 
-Esto evidencia que la configuración actual y las pruebas de integración no fallan en el entorno configurado.
+## Referencias
 
-## Estado del proyecto
-
-El proyecto se encuentra en estado funcional para la capa de persistencia y cumple con la lógica principal del PRD, especialmente en:
-
-- persistencia JPA
-- migraciones Flyway
-- relaciones entre entidades
-- validación de restricciones y unicidad
-- pruebas reales con PostgreSQL mediante Testcontainers
-
-## Referencias importantes
-
-- PRD del proyecto: PRD_PulsePass.md
-- Código principal: src/main/java/com/pulsepass/pulsepass
-- Pruebas: src/test/java/com/pulsepass/pulsepass
-
-## URL del repositorio
-- https://github.com/nromero-4/pulsepass
-
-## URL del branch
-- https://github.com/nromero-4/pulsepass/tree/feature/artists
-
-## Nota final
-
-Este proyecto está orientado a demostrar la construcción de un modelo de persistencia realista y verificable en PostgreSQL, con foco en integridad, trazabilidad y pruebas de integración, siguiendo el enfoque académico del caso de estudio.
+- PRD de controladores: `PRD_PulsePass_Capa_Controladores_v2.md`
+- Código: `src/main/java/com/pulsepass/pulsepass`
+- Pruebas: `src/test/java/com/pulsepass/pulsepass`
+- Repositorio: <https://github.com/nromero-4/pulsepass>
