@@ -44,11 +44,21 @@ class RequestDtoValidationTest {
     @Test
     void registerUserRejectsMissingFieldsAndInvalidEmail() {
         RegisterUserRequest request = new RegisterUserRequest(
-                "", "not-an-email", "", "", null, null, null);
+                "", "not-an-email", "", "", "", null, null, null);
 
         Set<String> invalidFields = invalidFields(request);
 
-        assertThat(invalidFields).contains("username", "email", "firstName", "lastName", "birthDate");
+        assertThat(invalidFields).contains("username", "email", "password",
+                "firstName", "lastName", "birthDate");
+    }
+
+    @Test
+    void registerUserRejectsPasswordExceedingBcryptUtf8Limit() {
+        RegisterUserRequest request = new RegisterUserRequest(
+                "andrea", "andrea@example.com", "🙂".repeat(19), "Andrea", "Lopez",
+                null, null, java.time.LocalDate.of(2000, 1, 1));
+
+        assertThat(invalidFields(request)).contains("password");
     }
 
     @Test

@@ -18,7 +18,9 @@ import com.pulsepass.pulsepass.enums.TicketStatus;
 import com.pulsepass.pulsepass.enums.TicketType;
 import com.pulsepass.pulsepass.exception.BusinessRuleException;
 import com.pulsepass.pulsepass.exception.ResourceNotFoundException;
+import com.pulsepass.pulsepass.security.JwtService;
 import com.pulsepass.pulsepass.service.TicketService;
+import com.pulsepass.pulsepass.service.impl.UserDetailsServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,10 +28,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
 
 @WebMvcTest(TicketController.class)
+@Import(MvcSecurityTestConfiguration.class)
 class TicketControllerTest {
 
     @Autowired
@@ -41,12 +46,44 @@ class TicketControllerTest {
     @MockitoBean
     private TicketService ticketService;
 
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Test
+    void protectedTicketRouteReturnsUniformUnauthorizedResponseForAnonymousRequests() throws Exception {
+        mockMvc.perform(get("/api/tickets/{ticketCode}", "TCK-1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Authentication is required"));
+
+        verify(ticketService, never()).findByCode("TCK-1");
+    }
+
+    @Test
+    void regularUserCannotUseTicketsOrReadPaidSales() throws Exception {
+        var user = SecurityMockMvcRequestPostProcessors.user("andrea").roles("USER");
+
+        mockMvc.perform(patch("/api/tickets/{ticketCode}/use", "TCK-1").with(user))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
+        mockMvc.perform(get("/api/events/{eventCode}/tickets/paid", "CMF-2026").with(user))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
+
+        verify(ticketService, never()).markAsUsed("TCK-1");
+        verify(ticketService, never()).findPaidTicketsByEvent("CMF-2026");
+    }
+
     @Test
     void purchaseReturnsCreatedTicket() throws Exception {
         PurchaseTicketRequest request = validRequest();
         when(ticketService.purchase(request)).thenReturn(ticket(TicketStatus.PAID));
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(post("/api/tickets").with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -61,7 +98,7 @@ class TicketControllerTest {
     void purchaseRejectsInvalidRequestWithoutCallingService() throws Exception {
         PurchaseTicketRequest request = new PurchaseTicketRequest("invalid-email", "", null);
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(post("/api/tickets").with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -80,7 +117,7 @@ class TicketControllerTest {
         when(ticketService.purchase(request))
                 .thenThrow(new ResourceNotFoundException("User not found: andrea@example.com"));
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(post("/api/tickets").with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -96,7 +133,7 @@ class TicketControllerTest {
         when(ticketService.purchase(request))
                 .thenThrow(new BusinessRuleException("Tickets can only be purchased for published events"));
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(post("/api/tickets").with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -110,7 +147,8 @@ class TicketControllerTest {
     void findByCodeReturnsTicket() throws Exception {
         when(ticketService.findByCode("TCK-1")).thenReturn(ticket(TicketStatus.PAID));
 
-        mockMvc.perform(get("/api/tickets/{ticketCode}", "TCK-1"))
+        mockMvc.perform(get("/api/tickets/{ticketCode}", "TCK-1")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.ticketCode").value("TCK-1"))
@@ -124,7 +162,8 @@ class TicketControllerTest {
         when(ticketService.findByUserEmail("andrea@example.com"))
                 .thenReturn(List.of(ticket(TicketStatus.PAID)));
 
-        mockMvc.perform(get("/api/tickets/by-user").param("email", "andrea@example.com"))
+        mockMvc.perform(get("/api/tickets/by-user").param("email", "andrea@example.com")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].ticketCode").value("TCK-1"));
@@ -137,7 +176,8 @@ class TicketControllerTest {
         when(ticketService.findPaidTicketsByEvent("CMF-2026"))
                 .thenReturn(List.of(ticket(TicketStatus.PAID)));
 
-        mockMvc.perform(get("/api/events/{eventCode}/tickets/paid", "CMF-2026"))
+        mockMvc.perform(get("/api/events/{eventCode}/tickets/paid", "CMF-2026")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].eventCode").value("CMF-2026"))
@@ -150,7 +190,8 @@ class TicketControllerTest {
     void cancelReturnsUpdatedTicket() throws Exception {
         when(ticketService.cancel("TCK-1")).thenReturn(ticket(TicketStatus.CANCELLED));
 
-        mockMvc.perform(patch("/api/tickets/{ticketCode}/cancel", "TCK-1"))
+        mockMvc.perform(patch("/api/tickets/{ticketCode}/cancel", "TCK-1")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
@@ -163,7 +204,8 @@ class TicketControllerTest {
         when(ticketService.cancel("TCK-1"))
                 .thenThrow(new BusinessRuleException("Only paid tickets can be cancelled"));
 
-        mockMvc.perform(patch("/api/tickets/{ticketCode}/cancel", "TCK-1"))
+        mockMvc.perform(patch("/api/tickets/{ticketCode}/cancel", "TCK-1")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message").value("Only paid tickets can be cancelled"));
@@ -175,7 +217,8 @@ class TicketControllerTest {
     void markAsUsedReturnsUpdatedTicket() throws Exception {
         when(ticketService.markAsUsed("TCK-1")).thenReturn(ticket(TicketStatus.USED));
 
-        mockMvc.perform(patch("/api/tickets/{ticketCode}/use", "TCK-1"))
+        mockMvc.perform(patch("/api/tickets/{ticketCode}/use", "TCK-1")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("USED"));
@@ -188,7 +231,8 @@ class TicketControllerTest {
         when(ticketService.markAsUsed("TCK-1"))
                 .thenThrow(new BusinessRuleException("Only paid tickets can be marked as used"));
 
-        mockMvc.perform(patch("/api/tickets/{ticketCode}/use", "TCK-1"))
+        mockMvc.perform(patch("/api/tickets/{ticketCode}/use", "TCK-1")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message").value("Only paid tickets can be marked as used"));

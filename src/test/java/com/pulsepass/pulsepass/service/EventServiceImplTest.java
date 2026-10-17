@@ -22,6 +22,7 @@ import com.pulsepass.pulsepass.mapper.EventMapper;
 import com.pulsepass.pulsepass.repository.ArtistRepository;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.VenueRepository;
+import com.pulsepass.pulsepass.security.AuthorizationService;
 import com.pulsepass.pulsepass.service.impl.EventServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,19 +48,32 @@ class EventServiceImplTest {
     @Mock
     private EventMapper eventMapper;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private EventServiceImpl eventService;
 
     @Test
     void findByCodeReturnsMappedEvent() {
-        Event event = event(EventStatus.DRAFT, activeVenue());
-        EventResponse response = response(EventStatus.DRAFT);
+        Event event = event(EventStatus.PUBLISHED, activeVenue());
+        EventResponse response = response(EventStatus.PUBLISHED);
         when(eventRepository.findByEventCode("EV-1")).thenReturn(Optional.of(event));
         when(eventMapper.toResponse(event)).thenReturn(response);
 
         EventResponse result = eventService.findByCode("EV-1");
 
         assertThat(result).isSameAs(response);
+    }
+
+    @Test
+    void findByCodeHidesDraftEventsFromRegularUsers() {
+        Event event = event(EventStatus.DRAFT, activeVenue());
+        when(eventRepository.findByEventCode("EV-1")).thenReturn(Optional.of(event));
+        when(authorizationService.isStaffOrAdmin(null)).thenReturn(false);
+
+        assertThatThrownBy(() -> eventService.findByCode("EV-1"))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -262,6 +276,19 @@ class EventServiceImplTest {
 
         assertThat(result).containsExactly(summary);
         verify(eventRepository).findByArtistStageName("Solar Beat");
+    }
+
+    @Test
+    void findByArtistIncludesUnpublishedEventsForStaff() {
+        Event draft = event(EventStatus.DRAFT, activeVenue());
+        when(authorizationService.isStaffOrAdmin(null)).thenReturn(true);
+        when(eventRepository.findAllByArtistStageName("Solar Beat")).thenReturn(List.of(draft));
+        when(eventMapper.toSummary(draft)).thenReturn(summaryResponse());
+
+        assertThat(eventService.findByArtist("Solar Beat")).hasSize(1);
+
+        verify(eventRepository).findAllByArtistStageName("Solar Beat");
+        verify(eventRepository, never()).findByArtistStageName("Solar Beat");
     }
 
     private CreateEventRequest createRequest(LocalDateTime eventDate) {

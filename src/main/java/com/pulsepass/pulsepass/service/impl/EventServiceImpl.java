@@ -14,6 +14,7 @@ import com.pulsepass.pulsepass.mapper.EventMapper;
 import com.pulsepass.pulsepass.repository.ArtistRepository;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.VenueRepository;
+import com.pulsepass.pulsepass.security.AuthorizationService;
 import com.pulsepass.pulsepass.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,13 +28,16 @@ public class EventServiceImpl implements EventService {
     private final VenueRepository venueRepository;
     private final ArtistRepository artistRepository;
     private final EventMapper eventMapper;
+    private final AuthorizationService authorizationService;
 
     public EventServiceImpl(EventRepository eventRepository, VenueRepository venueRepository,
-                            ArtistRepository artistRepository, EventMapper eventMapper) {
+                            ArtistRepository artistRepository, EventMapper eventMapper,
+                            AuthorizationService authorizationService) {
         this.eventRepository = eventRepository;
         this.venueRepository = venueRepository;
         this.artistRepository = artistRepository;
         this.eventMapper = eventMapper;
+        this.authorizationService = authorizationService;
     }
 
     @Override
@@ -62,7 +66,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponse findByCode(String eventCode) {
-        return eventMapper.toResponse(findEvent(eventCode));
+        Event event = findEvent(eventCode);
+        if (event.getStatus() != EventStatus.PUBLISHED && !authorizationService.isStaffOrAdmin(
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication())) {
+            throw new ResourceNotFoundException("Event not found: " + eventCode);
+        }
+        return eventMapper.toResponse(event);
     }
 
     @Override
@@ -109,7 +118,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventSummaryResponse> findByArtist(String stageName) {
-        return eventRepository.findByArtistStageName(stageName).stream()
+        var authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        var events = authorizationService.isStaffOrAdmin(authentication)
+                ? eventRepository.findAllByArtistStageName(stageName)
+                : eventRepository.findByArtistStageName(stageName);
+        return events.stream()
                 .map(eventMapper::toSummary)
                 .toList();
     }

@@ -18,7 +18,9 @@ import com.pulsepass.pulsepass.enums.EventCategory;
 import com.pulsepass.pulsepass.enums.EventStatus;
 import com.pulsepass.pulsepass.exception.BusinessRuleException;
 import com.pulsepass.pulsepass.exception.ResourceNotFoundException;
+import com.pulsepass.pulsepass.security.JwtService;
 import com.pulsepass.pulsepass.service.EventService;
+import com.pulsepass.pulsepass.service.impl.UserDetailsServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -27,9 +29,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(EventController.class)
+@Import(MvcSecurityTestConfiguration.class)
 class EventControllerTest {
 
     @Autowired
@@ -41,12 +46,30 @@ class EventControllerTest {
     @MockitoBean
     private EventService eventService;
 
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Test
+    void regularUserCannotPublishEvents() throws Exception {
+        mockMvc.perform(patch("/api/events/{eventCode}/publish", "CMF-2026")
+                        .with(SecurityMockMvcRequestPostProcessors.user("andrea").roles("USER")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+
+        verify(eventService, never()).publish("CMF-2026");
+    }
+
     @Test
     void createReturnsCreatedEvent() throws Exception {
         CreateEventRequest request = validRequest();
         when(eventService.create(request)).thenReturn(event(EventStatus.DRAFT));
 
         mockMvc.perform(post("/api/events")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -65,6 +88,7 @@ class EventControllerTest {
                 """;
 
         mockMvc.perform(post("/api/events")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest())
@@ -93,7 +117,8 @@ class EventControllerTest {
         when(eventService.findByCode("UNKNOWN"))
                 .thenThrow(new ResourceNotFoundException("Event not found: UNKNOWN"));
 
-        mockMvc.perform(get("/api/events/{eventCode}", "UNKNOWN"))
+        mockMvc.perform(get("/api/events/{eventCode}", "UNKNOWN")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Event not found: UNKNOWN"));
@@ -118,7 +143,8 @@ class EventControllerTest {
     void publishReturnsUpdatedEvent() throws Exception {
         when(eventService.publish("CMF-2026")).thenReturn(event(EventStatus.PUBLISHED));
 
-        mockMvc.perform(patch("/api/events/{eventCode}/publish", "CMF-2026"))
+        mockMvc.perform(patch("/api/events/{eventCode}/publish", "CMF-2026")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
@@ -131,7 +157,8 @@ class EventControllerTest {
         when(eventService.publish("CMF-2026"))
                 .thenThrow(new BusinessRuleException("Only draft events can be published"));
 
-        mockMvc.perform(patch("/api/events/{eventCode}/publish", "CMF-2026"))
+        mockMvc.perform(patch("/api/events/{eventCode}/publish", "CMF-2026")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.message").value("Only draft events can be published"));
@@ -143,7 +170,8 @@ class EventControllerTest {
     void addArtistReturnsUpdatedEvent() throws Exception {
         when(eventService.addArtist("CMF-2026", 1L)).thenReturn(event(EventStatus.DRAFT));
 
-        mockMvc.perform(post("/api/events/{eventCode}/artists/{artistId}", "CMF-2026", 1))
+        mockMvc.perform(post("/api/events/{eventCode}/artists/{artistId}", "CMF-2026", 1)
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.eventCode").value("CMF-2026"));
@@ -156,7 +184,8 @@ class EventControllerTest {
                 when(eventService.addArtist("CMF-2026", 1L))
                                 .thenThrow(new BusinessRuleException("Artist is already associated with event"));
 
-                mockMvc.perform(post("/api/events/{eventCode}/artists/{artistId}", "CMF-2026", 1))
+                mockMvc.perform(post("/api/events/{eventCode}/artists/{artistId}", "CMF-2026", 1)
+                                .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
                                 .andExpect(status().isConflict())
                                 .andExpect(jsonPath("$.status").value(409))
                                 .andExpect(jsonPath("$.message").value("Artist is already associated with event"));

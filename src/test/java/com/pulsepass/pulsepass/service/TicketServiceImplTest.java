@@ -24,6 +24,7 @@ import com.pulsepass.pulsepass.mapper.TicketMapper;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.TicketRepository;
 import com.pulsepass.pulsepass.repository.UserRepository;
+import com.pulsepass.pulsepass.security.AuthorizationService;
 import com.pulsepass.pulsepass.service.impl.TicketServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -54,6 +55,9 @@ class TicketServiceImplTest {
 
     @Mock
     private TicketPricingStrategy pricingStrategy;
+
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private TicketServiceImpl ticketService;
@@ -218,6 +222,7 @@ class TicketServiceImplTest {
 
         assertThat(ticket.getStatus()).isEqualTo(TicketStatus.CANCELLED);
         assertThat(result.status()).isEqualTo(TicketStatus.CANCELLED);
+        verify(authorizationService).requireCanCancelTicket(ticket);
     }
 
     @Test

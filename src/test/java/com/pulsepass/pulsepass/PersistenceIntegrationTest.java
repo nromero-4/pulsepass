@@ -8,8 +8,11 @@ import com.pulsepass.pulsepass.domain.Artist;
 import com.pulsepass.pulsepass.domain.Event;
 import com.pulsepass.pulsepass.domain.Ticket;
 import com.pulsepass.pulsepass.domain.User;
+import com.pulsepass.pulsepass.domain.UserCredential;
 import com.pulsepass.pulsepass.domain.UserProfile;
 import com.pulsepass.pulsepass.domain.Venue;
+import com.pulsepass.pulsepass.dto.request.LoginRequest;
+import com.pulsepass.pulsepass.dto.request.RegisterUserRequest;
 import com.pulsepass.pulsepass.enums.EventCategory;
 import com.pulsepass.pulsepass.enums.EventStatus;
 import com.pulsepass.pulsepass.enums.TicketStatus;
@@ -18,7 +21,12 @@ import com.pulsepass.pulsepass.repository.ArtistRepository;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.TicketRepository;
 import com.pulsepass.pulsepass.repository.UserRepository;
+import com.pulsepass.pulsepass.repository.UserCredentialRepository;
 import com.pulsepass.pulsepass.repository.VenueRepository;
+import com.pulsepass.pulsepass.security.JwtService;
+import com.pulsepass.pulsepass.security.TestJwtSecret;
+import com.pulsepass.pulsepass.service.AuthService;
+import com.pulsepass.pulsepass.service.UserService;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,11 +37,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @Transactional
 class PersistenceIntegrationTest {
+
+    @DynamicPropertySource
+    static void registerTestJwtSecret(DynamicPropertyRegistry registry) {
+        TestJwtSecret.register(registry);
+    }
 
     @Autowired
     private VenueRepository venueRepository;
@@ -46,6 +62,21 @@ class PersistenceIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserCredentialRepository userCredentialRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private TicketRepository ticketRepository;
@@ -110,6 +141,36 @@ class PersistenceIntegrationTest {
         assertNotNull(userRepository.findByEmailIgnoreCase("ANDREA@EMAIL.COM"));
         assertEquals("Andrea", user.getProfile().getFirstName());
         assertEquals("TCK-0001", ticket.getTicketCode());
+    }
+
+    @Test
+    void shouldPersistCredentialSeparatelyFromUser() {
+        User user = userRepository.save(new User("credential-user", "credential@email.com"));
+        UserCredential credential = userCredentialRepository.save(
+                new UserCredential(user, "$2a$12$test-only-hash"));
+
+        assertNotNull(userCredentialRepository.findById(user.getId()).orElse(null));
+        assertEquals(user.getId(), credential.getUserId());
+        assertEquals("$2a$12$test-only-hash", credential.getPasswordHash());
+    }
+
+    @Test
+    void shouldRegisterAndAuthenticateUsingPersistedBcryptCredential() {
+        String suffix = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String password = "A-Strong-Passphrase-2026!";
+        var registered = userService.register(new RegisterUserRequest(
+                "secure-" + suffix, suffix + "@example.com", password, "Test", "User",
+                null, null, LocalDate.of(1990, 1, 1)));
+        UserCredential credential = userCredentialRepository.findById(registered.id()).orElseThrow();
+
+        assertTrue(passwordEncoder.matches(password, credential.getPasswordHash()));
+        assertEquals(Set.of(com.pulsepass.pulsepass.enums.RoleName.USER),
+                userRepository.findById(registered.id()).orElseThrow().getRoles());
+
+        var response = authService.login(new LoginRequest(suffix + "@example.com", password));
+        assertEquals("Bearer", response.tokenType());
+        assertTrue(jwtService.isTokenValid(response.accessToken()));
+        assertEquals(registered.id(), jwtService.extractUserId(response.accessToken()));
     }
 
     @Test
