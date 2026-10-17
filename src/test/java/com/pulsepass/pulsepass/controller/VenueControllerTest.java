@@ -9,16 +9,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.pulsepass.pulsepass.dto.response.VenueResponse;
 import com.pulsepass.pulsepass.exception.ResourceNotFoundException;
+import com.pulsepass.pulsepass.security.JwtService;
 import com.pulsepass.pulsepass.service.VenueService;
+import com.pulsepass.pulsepass.service.impl.UserDetailsServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(VenueController.class)
+@Import(MvcSecurityTestConfiguration.class)
 class VenueControllerTest {
 
     @Autowired
@@ -26,6 +30,12 @@ class VenueControllerTest {
 
     @MockitoBean
     private VenueService venueService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsServiceImpl userDetailsService;
 
     @Test
     void findByCodeReturnsVenue() throws Exception {

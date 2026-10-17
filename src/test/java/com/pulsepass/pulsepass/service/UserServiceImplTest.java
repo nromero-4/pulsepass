@@ -8,12 +8,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pulsepass.pulsepass.domain.User;
+import com.pulsepass.pulsepass.domain.UserCredential;
 import com.pulsepass.pulsepass.dto.request.RegisterUserRequest;
 import com.pulsepass.pulsepass.dto.response.UserResponse;
 import com.pulsepass.pulsepass.exception.BusinessRuleException;
 import com.pulsepass.pulsepass.exception.DuplicateResourceException;
 import com.pulsepass.pulsepass.mapper.UserMapper;
 import com.pulsepass.pulsepass.repository.UserRepository;
+import com.pulsepass.pulsepass.repository.UserCredentialRepository;
 import com.pulsepass.pulsepass.service.impl.UserServiceImpl;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -30,7 +33,13 @@ class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private UserCredentialRepository credentialRepository;
+
+    @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -41,7 +50,10 @@ class UserServiceImplTest {
         UserResponse response = response();
         when(userRepository.existsByUsername("andrea")).thenReturn(false);
         when(userRepository.existsByEmailIgnoreCase("andrea@email.com")).thenReturn(false);
+        when(passwordEncoder.encode("Password123!")).thenReturn("$2a$test-hash");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(credentialRepository.save(any(UserCredential.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(userMapper.toResponse(any(User.class))).thenReturn(response);
 
         UserResponse result = userService.register(request);
@@ -51,9 +63,15 @@ class UserServiceImplTest {
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getActive()).isTrue();
+        assertThat(savedUser.getRoles()).containsExactly(com.pulsepass.pulsepass.enums.RoleName.USER);
         assertThat(savedUser.getProfile()).isNotNull();
         assertThat(savedUser.getProfile().getUser()).isSameAs(savedUser);
         assertThat(savedUser.getProfile().getBirthDate()).isEqualTo(request.birthDate());
+        org.mockito.ArgumentCaptor<UserCredential> credentialCaptor =
+                org.mockito.ArgumentCaptor.forClass(UserCredential.class);
+        verify(credentialRepository).save(credentialCaptor.capture());
+        assertThat(credentialCaptor.getValue().getUser()).isSameAs(savedUser);
+        assertThat(credentialCaptor.getValue().getPasswordHash()).isEqualTo("$2a$test-hash");
     }
 
     @Test
@@ -64,6 +82,7 @@ class UserServiceImplTest {
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("andrea");
         verify(userRepository, never()).save(any(User.class));
+        verify(credentialRepository, never()).save(any(UserCredential.class));
     }
 
     @Test
@@ -75,6 +94,7 @@ class UserServiceImplTest {
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("andrea@email.com");
         verify(userRepository, never()).save(any(User.class));
+        verify(credentialRepository, never()).save(any(UserCredential.class));
     }
 
     @Test
@@ -85,6 +105,7 @@ class UserServiceImplTest {
         assertThatThrownBy(() -> userService.register(request(LocalDate.now().plusDays(1))))
                 .isInstanceOf(BusinessRuleException.class);
         verify(userRepository, never()).save(any(User.class));
+        verify(credentialRepository, never()).save(any(UserCredential.class));
     }
 
     @Test
@@ -117,8 +138,8 @@ class UserServiceImplTest {
     }
 
     private RegisterUserRequest request(LocalDate birthDate) {
-        return new RegisterUserRequest("andrea", "andrea@email.com", "Andrea", "Rojas",
-                "3001234567", "Santa Marta", birthDate);
+        return new RegisterUserRequest("andrea", "andrea@email.com", "Password123!", "Andrea", "Rojas",
+            "3001234567", "Santa Marta", birthDate);
     }
 
     private UserResponse response() {

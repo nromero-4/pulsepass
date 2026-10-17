@@ -13,6 +13,7 @@ import com.pulsepass.pulsepass.mapper.TicketMapper;
 import com.pulsepass.pulsepass.repository.EventRepository;
 import com.pulsepass.pulsepass.repository.TicketRepository;
 import com.pulsepass.pulsepass.repository.UserRepository;
+import com.pulsepass.pulsepass.security.AuthorizationService;
 import com.pulsepass.pulsepass.service.TicketPricingStrategy;
 import com.pulsepass.pulsepass.service.TicketService;
 import java.time.LocalDate;
@@ -31,20 +32,24 @@ public class TicketServiceImpl implements TicketService {
     private final EventRepository eventRepository;
     private final TicketMapper ticketMapper;
     private final TicketPricingStrategy pricingStrategy;
+    private final AuthorizationService authorizationService;
 
     public TicketServiceImpl(TicketRepository ticketRepository, UserRepository userRepository,
                              EventRepository eventRepository, TicketMapper ticketMapper,
-                             TicketPricingStrategy pricingStrategy) {
+                             TicketPricingStrategy pricingStrategy,
+                             AuthorizationService authorizationService) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.ticketMapper = ticketMapper;
         this.pricingStrategy = pricingStrategy;
+        this.authorizationService = authorizationService;
     }
 
     @Override
     @Transactional
     public TicketResponse purchase(PurchaseTicketRequest request) {
+        authorizationService.requireCanPurchaseFor(request.userEmail());
         User user = userRepository.findByEmailIgnoreCase(request.userEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.userEmail()));
         if (!Boolean.TRUE.equals(user.getActive())) {
@@ -82,11 +87,14 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse findByCode(String ticketCode) {
-        return ticketMapper.toResponse(findTicket(ticketCode));
+        Ticket ticket = findTicket(ticketCode);
+        authorizationService.requireCanAccessTicket(ticket);
+        return ticketMapper.toResponse(ticket);
     }
 
     @Override
     public List<TicketResponse> findByUserEmail(String email) {
+        authorizationService.requireCanAccessUserEmail(email);
         return ticketRepository.findByUserEmailIgnoreCaseOrderByPurchaseDateDesc(email).stream()
                 .map(ticketMapper::toResponse)
                 .toList();
@@ -94,6 +102,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public List<TicketResponse> findPaidTicketsByEvent(String eventCode) {
+        authorizationService.requireStaffOrAdmin();
         return ticketRepository.findByEventCodeAndStatus(eventCode, TicketStatus.PAID).stream()
                 .map(ticketMapper::toResponse)
                 .toList();
@@ -103,6 +112,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public TicketResponse cancel(String ticketCode) {
         Ticket ticket = findTicket(ticketCode);
+        authorizationService.requireCanCancelTicket(ticket);
         if (ticket.getStatus() != TicketStatus.PAID) {
             throw new BusinessRuleException("Only paid tickets can be cancelled: " + ticketCode);
         }
@@ -117,6 +127,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketResponse markAsUsed(String ticketCode) {
+        authorizationService.requireStaffOrAdmin();
         Ticket ticket = findTicket(ticketCode);
         if (ticket.getStatus() != TicketStatus.PAID) {
             throw new BusinessRuleException("Only paid tickets can be marked as used: " + ticketCode);
