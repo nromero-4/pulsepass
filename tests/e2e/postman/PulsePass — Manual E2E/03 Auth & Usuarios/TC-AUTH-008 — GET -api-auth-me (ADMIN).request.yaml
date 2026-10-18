@@ -1,0 +1,15 @@
+$kind: http-request
+name: TC-AUTH-008 — GET /api/auth/me (ADMIN)
+description: |-
+  **Objetivo:** Verificar que ADMIN tiene roles=["ADMIN"] (o ["ADMIN","STAFF"] según implementación).
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - roles debe incluir "ADMIN"
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Authorization: Bearer {{adminToken}}
+  Accept: application/json
+order: 8000

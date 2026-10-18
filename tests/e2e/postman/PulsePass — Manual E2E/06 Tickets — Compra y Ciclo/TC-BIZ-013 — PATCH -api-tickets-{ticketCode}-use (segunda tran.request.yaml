@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-BIZ-013 — PATCH /api/tickets/{ticketCode}/use (segunda transición, falla 409)
+description: |-
+  **Objetivo:** No se puede marcar como usado un ticket ya usado.
+
+  **HTTP Esperado:** 409
+url: "{{baseUrl}}/api/tickets/{{ticketUsableCode}}/use"
+method: PATCH
+headers:
+  Authorization: Bearer {{staffToken}}
+  Content-Type: application/json
+order: 16000

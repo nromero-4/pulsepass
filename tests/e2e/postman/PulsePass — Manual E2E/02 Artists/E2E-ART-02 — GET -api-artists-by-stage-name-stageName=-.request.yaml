@@ -1,0 +1,20 @@
+$kind: http-request
+name: E2E-ART-02 — GET /api/artists/by-stage-name?stageName=...
+description: |-
+  **Objetivo:** Consultar artista por nombre artístico.
+
+  **Precondiciones:** {{artistStageName}} debe existir.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: ArtistResponse
+  - Verificar que coincide con E2E-ART-01
+url: "{{baseUrl}}/api/artists/by-stage-name?stageName={{artistStageName}}"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  stageName: "{{artistStageName}}"
+order: 2000

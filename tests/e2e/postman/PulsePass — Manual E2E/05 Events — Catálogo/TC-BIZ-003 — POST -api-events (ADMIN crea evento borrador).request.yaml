@@ -1,0 +1,32 @@
+$kind: http-request
+name: TC-BIZ-003 — POST /api/events (ADMIN crea evento borrador)
+description: |-
+  **Objetivo:** ADMIN crea evento en estado DRAFT.
+
+  **Precondiciones:** ADMIN autenticado, {{venueActiveCode}} activo, fecha futura válida.
+
+  **HTTP Esperado:** 201
+
+  **Revisión Manual:**
+  - Status: 201
+  - Body: EventResponse con status=DRAFT, eventCode, name, category=MUSIC
+  - Guardar {{draftEventCode}} del response
+  - Verificar que NO aparece en GET /api/events/published
+url: "{{baseUrl}}/api/events"
+method: POST
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventCode": "EVT-E2E-{{runId}}-001",
+      "name": "PulsePass E2E Test Event {{runId}}",
+      "description": "Evento de prueba manual E2E",
+      "category": "MUSIC",
+      "eventDate": "{{eventDate}}",
+      "minimumAge": 18,
+      "venueCode": "{{venueActiveCode}}"
+    }
+order: 1000

@@ -1,0 +1,20 @@
+$kind: http-request
+name: TC-AUTH-007 — GET /api/auth/me (USER_A)
+description: |-
+  **Objetivo:** Consultar identidad actual con token USER_A.
+
+  **Precondiciones:** {{userAToken}} válido y no expirado.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: AuthenticatedUserResponse con userId, username, email, roles=["USER"]
+  - Sin password, sin credenciales
+  - Identidad coincide con registro USER_A
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+order: 7000

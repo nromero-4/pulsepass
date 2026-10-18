@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-SEC-010 — GET /api/tickets/by-user?email=... (usuario ajeno intenta listar)
+description: |-
+  **Objetivo:** USER_B no puede listar tickets de USER_A.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/tickets/by-user?email={{userAEmail}}"
+method: GET
+headers:
+  Authorization: Bearer {{userBToken}}
+  Accept: application/json
+queryParams:
+  email: "{{userAEmail}}"
+order: 7000

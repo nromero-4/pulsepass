@@ -1,0 +1,23 @@
+$kind: http-request
+name: TC-SEC-008 — POST /api/tickets (USER_A intenta comprar con email de USER_B)
+description: |-
+  **Objetivo:** Verificar rechazo de compra ajena.
+
+  **HTTP Esperado:** 403
+
+  **Revisión Manual:**
+  - Sin ticket creado a nombre de USER_B
+url: "{{baseUrl}}/api/tickets"
+method: POST
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "userEmail": "{{userBEmail}}",
+      "eventCode": "{{publishedEventCode}}",
+      "type": "GENERAL"
+    }
+order: 2000

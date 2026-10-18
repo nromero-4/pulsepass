@@ -1,0 +1,15 @@
+$kind: http-request
+name: TC-AUTH-009 — GET /api/auth/me sin token
+description: |-
+  **Objetivo:** Verificar rechazo sin autenticación.
+
+  **HTTP Esperado:** 401
+
+  **Revisión Manual:**
+  - Status: 401
+  - Body: ErrorResponse con error y message seguros, sin stack trace
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Accept: application/json
+order: 9000

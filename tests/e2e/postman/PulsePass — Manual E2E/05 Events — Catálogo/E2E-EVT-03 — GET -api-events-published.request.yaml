@@ -1,0 +1,17 @@
+$kind: http-request
+name: E2E-EVT-03 — GET /api/events/published
+description: |-
+  **Objetivo:** Listar eventos publicados (público).
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array de EventSummaryResponse, todos con status=PUBLISHED
+  - NO incluye borradores
+  - Guardar {{publishedEventCode}} de uno existente si es necesario para otros tests
+url: "{{baseUrl}}/api/events/published"
+method: GET
+headers:
+  Accept: application/json
+order: 6000

@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-AUTH-009 — GET /api/auth/me con JWT alterado
+description: |-
+  **Objetivo:** Verificar rechazo de JWT manipulado.
+
+  **HTTP Esperado:** 401
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.invalid-signature
+  Accept: application/json
+order: 3000

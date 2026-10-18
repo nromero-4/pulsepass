@@ -1,0 +1,27 @@
+$kind: collection
+description: Manual end-to-end checks for the 22 PulsePass API routes. Execute each request individually with Send; no scripts, Runner, Newman, or automated assertions. See tests/e2e/README.md.
+variables:
+  baseUrl: http://localhost:8080
+  runId: e2e-20261018-001
+  venueActiveCode: ""
+  artistId: ""
+  artistStageName: ""
+  userAUsername: ""
+  userAEmail: ""
+  userAPassword: ""
+  userBUsername: ""
+  userBEmail: ""
+  userBPassword: ""
+  adminIdentifier: ""
+  adminPassword: ""
+  staffIdentifier: ""
+  staffPassword: ""
+  userAToken: ""
+  userBToken: ""
+  adminToken: ""
+  staffToken: ""
+  draftEventCode: ""
+  publishedEventCode: ""
+  ticketCancelableCode: ""
+  ticketUsableCode: ""
+  eventDate: 2099-12-25T20:00:00

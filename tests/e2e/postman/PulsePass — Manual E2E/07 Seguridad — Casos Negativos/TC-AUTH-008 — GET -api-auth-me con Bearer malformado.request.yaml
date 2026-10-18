@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-AUTH-008 — GET /api/auth/me con Bearer malformado
+description: |-
+  **Objetivo:** Verificar 401 con JWT malformado.
+
+  **HTTP Esperado:** 401
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Authorization: Bearer not-a-valid-jwt
+  Accept: application/json
+order: 2000

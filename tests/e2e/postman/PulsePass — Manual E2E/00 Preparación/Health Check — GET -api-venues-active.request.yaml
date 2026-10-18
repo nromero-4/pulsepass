@@ -1,0 +1,8 @@
+$kind: http-request
+name: Health Check — GET /api/venues/active
+description: Verifica conectividad básica. Debe retornar 200 con lista de venues activos.
+url: "{{baseUrl}}/api/venues/active"
+method: GET
+headers:
+  Accept: application/json
+order: 1000

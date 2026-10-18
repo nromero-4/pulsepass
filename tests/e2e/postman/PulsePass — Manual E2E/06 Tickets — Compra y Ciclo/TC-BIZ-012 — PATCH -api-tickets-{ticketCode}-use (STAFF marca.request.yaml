@@ -1,0 +1,18 @@
+$kind: http-request
+name: TC-BIZ-012 — PATCH /api/tickets/{ticketCode}/use (STAFF marca usado)
+description: |-
+  **Objetivo:** STAFF marca ticket como USED.
+
+  **Precondiciones:** {{ticketUsableCode}} con status=PAID.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: TicketResponse con status=USED
+url: "{{baseUrl}}/api/tickets/{{ticketUsableCode}}/use"
+method: PATCH
+headers:
+  Authorization: Bearer {{staffToken}}
+  Content-Type: application/json
+order: 14000

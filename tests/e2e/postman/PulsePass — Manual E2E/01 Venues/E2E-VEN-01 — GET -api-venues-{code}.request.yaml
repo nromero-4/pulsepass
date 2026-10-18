@@ -1,0 +1,20 @@
+$kind: http-request
+name: E2E-VEN-01 — GET /api/venues/{code}
+description: |-
+  **Objetivo:** Consultar venue activo por código.
+
+  **Precondiciones:** {{venueActiveCode}} debe existir en BD.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: VenueResponse con id, code, name, city, address, capacity, active=true
+  - No campos sensibles
+
+  **Caso Negativo:** Enviar código inexistente → 404
+url: "{{baseUrl}}/api/venues/{{venueActiveCode}}"
+method: GET
+headers:
+  Accept: application/json
+order: 1000

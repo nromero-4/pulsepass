@@ -1,0 +1,16 @@
+$kind: http-request
+name: TC-BIZ-011 — PATCH /api/tickets/{ticketCode}/cancel (segunda cancelación, debe fallar)
+description: |-
+  **Objetivo:** No se puede cancelar un ticket ya cancelado.
+
+  **HTTP Esperado:** 409
+
+  **Revisión Manual:**
+  - Status: 409
+  - ErrorResponse con mensaje de estado inválido
+url: "{{baseUrl}}/api/tickets/{{ticketCancelableCode}}/cancel"
+method: PATCH
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+order: 12000

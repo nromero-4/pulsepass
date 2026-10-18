@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-SEC-003 — POST /api/events/{eventCode}/artists/{artistId} (USER falla 403)
+description: |-
+  **Objetivo:** USER no puede asociar artistas.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/events/{{draftEventCode}}/artists/{{artistId}}"
+method: POST
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+order: 11000

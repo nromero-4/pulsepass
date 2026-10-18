@@ -1,0 +1,22 @@
+$kind: http-request
+name: TC-AUTH-010 — POST /api/auth/login (credenciales incorrectas)
+description: |-
+  **Objetivo:** Verificar rechazo con password incorrecto.
+
+  **HTTP Esperado:** 401
+
+  **Revisión Manual:**
+  - Status: 401
+  - Message genérico, sin enumeración (no distinguir usuario no encontrado de password mal)
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{userAUsername}}",
+      "password": "WrongPassword123456"
+    }
+order: 10000

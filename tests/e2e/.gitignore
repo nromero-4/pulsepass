@@ -1,0 +1,88 @@
+# ============================================================================
+# .gitignore para PulsePass E2E Tests
+# Protege credenciales, tokens y datos sensibles
+# ============================================================================
+
+# Tokens JWT y credenciales
+*.token
+*.jwt
+*.bearer
+**/bearerToken
+**/accessToken
+
+# Ambiente Postman con valores rellenados (secretos)
+PulsePass-local-*.json
+!PulsePass-local.postman_environment.json
+
+# Logs con información sensible
+*.log
+logs/
+
+# Capturas de pantalla con tokens (si las hay)
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Archivos de sesión de Postman
+.postman_session
+postman-session*.json
+
+# BD local
+*.db
+*.sqlite
+pgdata/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Historial de bash/shell
+.bash_history
+.history
+.zsh_history
+
+# Node modules (si aplica)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ============================================================================
+# IMPORTANTE: Archivos que SÍ deben comitearse
+# ============================================================================
+# ✓ PulsePass-Manual-E2E.postman_collection.json (sin tokens)
+# ✓ PulsePass-local.postman_environment.json (plantilla sin valores)
+# ✓ README.md
+# ✓ checklist-e2e-manual.md
+# ✓ registro-ejecucion-manual.md (sin datos personales)
+# ✓ fixtures/seed-e2e.sql (cuentas y hashes desechables para uso local)
+# ✓ .gitignore (este archivo)
+# ✓ matriz-cobertura.md

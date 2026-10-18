@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-SEC-009 — GET /api/tickets/{ticketCode} (usuario ajeno intenta ver)
+description: |-
+  **Objetivo:** USER_B no puede ver ticket de USER_A.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/tickets/{{ticketCancelableCode}}"
+method: GET
+headers:
+  Authorization: Bearer {{userBToken}}
+  Accept: application/json
+order: 5000

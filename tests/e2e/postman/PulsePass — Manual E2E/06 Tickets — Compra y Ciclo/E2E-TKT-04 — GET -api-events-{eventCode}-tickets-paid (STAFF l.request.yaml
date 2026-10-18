@@ -1,0 +1,19 @@
+$kind: http-request
+name: E2E-TKT-04 — GET /api/events/{eventCode}/tickets/paid (STAFF lista pagados)
+description: |-
+  **Objetivo:** STAFF lista tickets PAID de evento.
+
+  **Precondiciones:** STAFF autenticado.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array de TicketResponse con status=PAID
+  - Incluye {{ticketCancelableCode}}
+url: "{{baseUrl}}/api/events/{{publishedEventCode}}/tickets/paid"
+method: GET
+headers:
+  Authorization: Bearer {{staffToken}}
+  Accept: application/json
+order: 8000

@@ -1,0 +1,28 @@
+$kind: http-request
+name: TC-AUTH-001 — POST /api/users (Registrar USER_A)
+description: |-
+  **Objetivo:** Registrar USER_A; el rol inicial lo asigna el servidor.
+
+  **Precondiciones:** {{userAEmail}} y {{userAUsername}} unicos.
+
+  **HTTP Esperado:** 201
+
+  **Revision Manual:** UserResponse con id, username, email, datos de perfil y active; no incluye password, hash ni roles. El rol se comprueba en TC-AUTH-007 mediante /api/auth/me. RegisterUserRequest no contiene un campo de rol.
+url: "{{baseUrl}}/api/users"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "{{userAUsername}}",
+      "email": "{{userAEmail}}",
+      "firstName": "Andrea",
+      "lastName": "Pruebas",
+      "birthDate": "1995-05-15",
+      "phone": "+573101234567",
+      "city": "Bogotá",
+      "password": "{{userAPassword}}"
+    }
+order: 1000

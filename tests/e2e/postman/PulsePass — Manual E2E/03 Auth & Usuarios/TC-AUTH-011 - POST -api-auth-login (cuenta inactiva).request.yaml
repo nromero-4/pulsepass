@@ -1,0 +1,20 @@
+$kind: http-request
+name: TC-AUTH-011 - POST /api/auth/login (cuenta inactiva)
+description: |-
+  **Objetivo:** Verificar que una cuenta inactiva no obtiene un token aunque la contrasena sea correcta.
+
+  **Precondicion:** Cargar el fixture y completar {{inactiveIdentifier}} y {{inactivePassword}}.
+
+  **HTTP Esperado:** 401. No debe devolver accessToken.
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{inactiveIdentifier}}",
+      "password": "{{inactivePassword}}"
+    }
+order: 11000

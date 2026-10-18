@@ -1,0 +1,18 @@
+$kind: http-request
+name: E2E-TKT-03 — GET /api/tickets/by-user?email=... (propietario lista sus tickets)
+description: |-
+  **Objetivo:** USER_A lista sus propios tickets.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array incluyendo {{ticketCancelableCode}}
+url: "{{baseUrl}}/api/tickets/by-user?email={{userAEmail}}"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+queryParams:
+  email: "{{userAEmail}}"
+order: 6000

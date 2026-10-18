@@ -1,0 +1,29 @@
+$kind: http-request
+name: TC-SEC-001 — POST /api/events (USER intenta crear, deber fallar 403)
+description: |-
+  **Objetivo:** Verificar denegación de rol USER.
+
+  **HTTP Esperado:** 403
+
+  **Revisión Manual:**
+  - Status: 403
+  - ErrorResponse seguro
+  - No evento creado
+url: "{{baseUrl}}/api/events"
+method: POST
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventCode": "EVT-FAIL-{{runId}}",
+      "name": "Should Fail",
+      "description": "No debe crearse",
+      "category": "MUSIC",
+      "eventDate": "{{eventDate}}",
+      "minimumAge": 18,
+      "venueCode": "{{venueActiveCode}}"
+    }
+order: 2000

@@ -1,0 +1,18 @@
+$kind: http-request
+name: E2E-ART-03 — GET /api/artists/active
+description: |-
+  **Objetivo:** Listar artistas activos.
+
+  **Precondiciones:** Al menos un artista activo.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array de ArtistResponse, todos con active=true
+  - Guardar {{artistId}} y {{artistStageName}} para tests posteriores
+url: "{{baseUrl}}/api/artists/active"
+method: GET
+headers:
+  Accept: application/json
+order: 3000

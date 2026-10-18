@@ -1,0 +1,23 @@
+$kind: http-request
+name: TC-BIZ-007b — POST /api/tickets (comprar segundo ticket para marcar como usado)
+description: |-
+  **Objetivo:** Comprar segundo ticket para pruebas de USE (el anterior ya fue cancelado).
+
+  **HTTP Esperado:** 201
+
+  **Revisión Manual:**
+  - Guardar {{ticketUsableCode}} para marcar como usado
+url: "{{baseUrl}}/api/tickets"
+method: POST
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "userEmail": "{{userAEmail}}",
+      "eventCode": "{{publishedEventCode}}",
+      "type": "VIP"
+    }
+order: 13000

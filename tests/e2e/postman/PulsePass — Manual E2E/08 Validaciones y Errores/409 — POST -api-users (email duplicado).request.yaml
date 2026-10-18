@@ -1,0 +1,25 @@
+$kind: http-request
+name: 409 — POST /api/users (email duplicado)
+description: |-
+  **Objetivo:** Verificar rechazo de email duplicado.
+
+  **HTTP Esperado:** 409
+
+  **Revisión Manual:**
+  - ErrorResponse con message sobre email duplicado
+url: "{{baseUrl}}/api/users"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "uniqueuser",
+      "email": "{{userAEmail}}",
+      "firstName": "Duplicate",
+      "lastName": "Test",
+      "birthDate": "1995-01-01",
+      "password": "ValidPassword123"
+    }
+order: 3000

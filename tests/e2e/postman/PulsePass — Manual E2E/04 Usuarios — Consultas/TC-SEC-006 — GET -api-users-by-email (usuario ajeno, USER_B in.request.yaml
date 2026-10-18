@@ -1,0 +1,18 @@
+$kind: http-request
+name: TC-SEC-006 — GET /api/users/by-email (usuario ajeno, USER_B intenta ver USER_A)
+description: |-
+  **Objetivo:** Verificar que USER_B no consulta el email de USER_A.
+
+  **Precondicion:** USER_B autenticado.
+
+  **HTTP Esperado:** 403 (AccessDenied).
+
+  **Revision Manual:** Sin datos de USER_A.
+url: "{{baseUrl}}/api/users/by-email?email={{userAEmail}}"
+method: GET
+headers:
+  Authorization: Bearer {{userBToken}}
+  Accept: application/json
+queryParams:
+  email: "{{userAEmail}}"
+order: 2000

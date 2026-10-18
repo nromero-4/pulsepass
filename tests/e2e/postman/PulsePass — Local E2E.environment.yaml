@@ -1,0 +1,54 @@
+name: PulsePass — Local E2E
+values:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+  - key: runId
+    value: e2e-20261018-001
+  - key: venueActiveCode
+    value: ''
+  - key: artistId
+    value: ''
+  - key: artistStageName
+    value: ''
+  - key: userAUsername
+    value: e2e_user_a_20261018_001
+  - key: userAEmail
+    value: e2e_user_a_20261018_001@example.test
+  - key: userAPassword
+    value: ''
+  - key: userBUsername
+    value: e2e_user_b_20261018_001
+  - key: userBEmail
+    value: e2e_user_b_20261018_001@example.test
+  - key: userBPassword
+    value: ''
+  - key: adminIdentifier
+    value: admin_e2e
+  - key: adminPassword
+    value: ''
+  - key: staffIdentifier
+    value: staff_e2e
+  - key: staffPassword
+    value: ''
+  - key: userAToken
+    value: ''
+  - key: userBToken
+    value: ''
+  - key: adminToken
+    value: ''
+  - key: staffToken
+    value: ''
+  - key: draftEventCode
+    value: ''
+  - key: publishedEventCode
+    value: ''
+  - key: ticketCancelableCode
+    value: ''
+  - key: ticketUsableCode
+    value: ''
+  - key: eventDate
+    value: '2099-12-25T20:00:00'
+  - key: inactiveIdentifier
+    value: inactive_user_e2e
+  - key: inactivePassword
+    value: ''
