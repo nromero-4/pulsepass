@@ -1,0 +1,14 @@
+$kind: http-request
+name: E2E-USR-03 — GET /api/users/by-username (propio)
+description: |-
+  **Objetivo:** USER_A consulta su propio username.
+
+  **HTTP Esperado:** 200
+url: "{{baseUrl}}/api/users/by-username?username={{userAUsername}}"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+queryParams:
+  username: "{{userAUsername}}"
+order: 3000

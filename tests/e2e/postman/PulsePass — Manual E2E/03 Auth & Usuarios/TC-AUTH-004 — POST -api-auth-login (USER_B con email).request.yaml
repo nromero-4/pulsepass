@@ -1,0 +1,24 @@
+$kind: http-request
+name: TC-AUTH-004 — POST /api/auth/login (USER_B con email)
+description: |-
+  **Objetivo:** Autenticar USER_B con email.
+
+  **Precondiciones:** USER_B registrado.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Copiar accessToken → {{userBToken}}
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{userBEmail}}",
+      "password": "{{userBPassword}}"
+    }
+order: 4000

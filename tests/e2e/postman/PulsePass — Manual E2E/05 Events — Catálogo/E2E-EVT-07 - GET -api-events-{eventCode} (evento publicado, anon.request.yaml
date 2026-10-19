@@ -1,0 +1,13 @@
+$kind: http-request
+name: E2E-EVT-07 - GET /api/events/{eventCode} (evento publicado, anonimo)
+description: |-
+  **Objetivo:** Confirmar que un visitante puede consultar un evento publicado.
+
+  **Precondicion:** {{publishedEventCode}} se publico correctamente.
+
+  **HTTP Esperado:** 200. El body indica status=PUBLISHED y no expone datos sensibles.
+url: "{{baseUrl}}/api/events/{{publishedEventCode}}"
+method: GET
+headers:
+  Accept: application/json
+order: 12000

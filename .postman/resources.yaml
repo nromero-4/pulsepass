@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: fa2c5f14-9f56-4c7e-804b-16c36c61035c
+
+localResources:
+  collections:
+    - ../tests/e2e/postman/PulsePass — Manual E2E
+  environments:
+    - ../tests/e2e/postman/PulsePass — Local E2E.environment.yaml

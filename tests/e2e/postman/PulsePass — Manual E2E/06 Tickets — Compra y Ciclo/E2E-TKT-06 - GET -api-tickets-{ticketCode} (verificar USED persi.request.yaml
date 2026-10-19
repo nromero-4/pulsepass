@@ -1,0 +1,12 @@
+$kind: http-request
+name: E2E-TKT-06 - GET /api/tickets/{ticketCode} (verificar USED persistido)
+description: |-
+  **Objetivo:** Verificar que el uso del ticket persiste.
+
+  **HTTP Esperado:** 200; el body debe tener status=USED.
+url: "{{baseUrl}}/api/tickets/{{ticketUsableCode}}"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+order: 15000

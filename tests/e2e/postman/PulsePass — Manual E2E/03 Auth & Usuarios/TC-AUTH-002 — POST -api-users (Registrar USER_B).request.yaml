@@ -1,0 +1,30 @@
+$kind: http-request
+name: TC-AUTH-002 — POST /api/users (Registrar USER_B)
+description: |-
+  **Objetivo:** Registrar segundo usuario independiente para pruebas de IDOR.
+
+  **Precondiciones:** {{userBEmail}} y {{userBUsername}} único y diferente de USER_A.
+
+  **HTTP Esperado:** 201
+
+  **Revisión Manual:**
+  - Status: 201
+  - Body: UserResponse distinto de USER_A
+url: "{{baseUrl}}/api/users"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "{{userBUsername}}",
+      "email": "{{userBEmail}}",
+      "firstName": "Benjamin",
+      "lastName": "Exam",
+      "birthDate": "1998-08-20",
+      "phone": "+573109876543",
+      "city": "Medellín",
+      "password": "{{userBPassword}}"
+    }
+order: 2000

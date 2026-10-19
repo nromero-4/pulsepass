@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-SEC-004 — GET /api/events/{eventCode} (borrador por anónimo, debe fallar)
+description: |-
+  **Objetivo:** Anónimo no puede ver borradores.
+
+  **HTTP Esperado:** 404
+
+  **Revisión Manual:**
+  - Sin datos del draft
+url: "{{baseUrl}}/api/events/{{draftEventCode}}"
+method: GET
+headers:
+  Accept: application/json
+order: 5000

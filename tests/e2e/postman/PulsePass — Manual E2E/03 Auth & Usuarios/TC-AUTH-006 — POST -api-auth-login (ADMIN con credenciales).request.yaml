@@ -1,0 +1,24 @@
+$kind: http-request
+name: TC-AUTH-006 — POST /api/auth/login (ADMIN con credenciales)
+description: |-
+  **Objetivo:** Autenticar usuario ADMIN.
+
+  **Precondiciones:** ADMIN provisionado via SQL.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Copiar accessToken → {{adminToken}}
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{adminIdentifier}}",
+      "password": "{{adminPassword}}"
+    }
+order: 6000

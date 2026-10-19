@@ -1,0 +1,14 @@
+$kind: http-request
+name: 404 — GET /api/venues/code-inexistente
+description: |-
+  **Objetivo:** Verificar 404 para recurso inexistente.
+
+  **HTTP Esperado:** 404
+
+  **Revisión Manual:**
+  - ErrorResponse sin exposición de BD
+url: "{{baseUrl}}/api/venues/NONEXISTENT-{{runId}}"
+method: GET
+headers:
+  Accept: application/json
+order: 4000

@@ -1,0 +1,30 @@
+$kind: http-request
+name: TC-BIZ-007 — POST /api/tickets (USER_A compra)
+description: |-
+  **Objetivo:** USER_A compra ticket para evento publicado.
+
+  **Precondiciones:** {{publishedEventCode}} PUBLISHED, usuario activo, aforo disponible.
+
+  **HTTP Esperado:** 201
+
+  **Revisión Manual:**
+  - Status: 201
+  - Body: TicketResponse con status=PAID, ticketCode, userEmail={{userAEmail}}
+  - Guardar {{ticketCancelableCode}} para cancelación
+  - Evento no PUBLISHED → 409
+  - userEmail ajeno → 403
+  - Capacidad llena → 409
+url: "{{baseUrl}}/api/tickets"
+method: POST
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "userEmail": "{{userAEmail}}",
+      "eventCode": "{{publishedEventCode}}",
+      "type": "GENERAL"
+    }
+order: 1000

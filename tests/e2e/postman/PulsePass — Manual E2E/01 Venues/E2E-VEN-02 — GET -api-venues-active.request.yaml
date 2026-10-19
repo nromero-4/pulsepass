@@ -1,0 +1,18 @@
+$kind: http-request
+name: E2E-VEN-02 — GET /api/venues/active
+description: |-
+  **Objetivo:** Listar venues activos.
+
+  **Precondiciones:** Al menos un venue activo en BD.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array de VenueResponse, todos con active=true
+  - Guardar {{venueActiveCode}} para uso posterior
+url: "{{baseUrl}}/api/venues/active"
+method: GET
+headers:
+  Accept: application/json
+order: 2000

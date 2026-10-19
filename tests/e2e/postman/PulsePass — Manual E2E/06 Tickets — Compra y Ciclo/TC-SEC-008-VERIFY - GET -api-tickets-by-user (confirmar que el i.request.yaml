@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-SEC-008-VERIFY - GET /api/tickets/by-user (confirmar que el intento denegado no compro)
+description: |-
+  **Objetivo:** Verificar que el intento de USER_A de comprar para USER_B no dejo tickets.
+
+  **Precondicion:** USER_B aun no tiene tickets en esta ejecucion.
+
+  **HTTP Esperado:** 200 y array vacio.
+url: "{{baseUrl}}/api/tickets/by-user?email={{userBEmail}}"
+method: GET
+headers:
+  Authorization: Bearer {{adminToken}}
+  Accept: application/json
+order: 3000

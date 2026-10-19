@@ -1,0 +1,27 @@
+$kind: http-request
+name: TC-AUTH-003 — POST /api/auth/login (USER_A con username)
+description: |-
+  **Objetivo:** Autenticar USER_A con username, obtener JWT.
+
+  **Precondiciones:** USER_A registrado.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: AuthResponse con accessToken (JWT no vacío), tokenType="Bearer", expiresIn=900
+  - Copiar accessToken → {{userAToken}} manualmente en Postman
+  - Verificar que JWT contiene claims: sub (user ID), iss (pulsepass-api), exp
+  - Payload NO debe contener password ni secretos
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{userAUsername}}",
+      "password": "{{userAPassword}}"
+    }
+order: 3000

@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-SEC-007 — GET /api/users/by-username (usuario ajeno)
+description: |-
+  **Objetivo:** Verificar que USER_B no consulta el username de USER_A.
+
+  **HTTP Esperado:** 403 (AccessDenied).
+url: "{{baseUrl}}/api/users/by-username?username={{userAUsername}}"
+method: GET
+headers:
+  Authorization: Bearer {{userBToken}}
+  Accept: application/json
+queryParams:
+  username: "{{userAUsername}}"
+order: 4000

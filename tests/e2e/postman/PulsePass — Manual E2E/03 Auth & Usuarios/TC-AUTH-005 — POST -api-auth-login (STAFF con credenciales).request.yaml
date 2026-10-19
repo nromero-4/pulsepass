@@ -1,0 +1,24 @@
+$kind: http-request
+name: TC-AUTH-005 — POST /api/auth/login (STAFF con credenciales)
+description: |-
+  **Objetivo:** Autenticar usuario STAFF.
+
+  **Precondiciones:** STAFF provisionado via SQL (fuera de registro público).
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Copiar accessToken → {{staffToken}}
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "identifier": "{{staffIdentifier}}",
+      "password": "{{staffPassword}}"
+    }
+order: 5000

@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-SEC-001-VERIFY - GET /api/events/{eventCode} (confirmar que el evento denegado no existe)
+description: |-
+  **Objetivo:** Confirmar que el intento denegado de USER_A no creo el evento.
+
+  **Precondicion:** Se ejecuto TC-SEC-001.
+
+  **HTTP Esperado:** 404. Con el token ADMIN, un evento creado seria visible.
+url: "{{baseUrl}}/api/events/EVT-FAIL-{{runId}}"
+method: GET
+headers:
+  Authorization: Bearer {{adminToken}}
+  Accept: application/json
+order: 3000

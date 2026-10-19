@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-SEC-012 — PATCH /api/tickets/{ticketCode}/use (USER intenta, falla 403)
+description: |-
+  **Objetivo:** USER no puede marcar tickets como usados.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/tickets/{{ticketUsableCode}}/use"
+method: PATCH
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+order: 17000

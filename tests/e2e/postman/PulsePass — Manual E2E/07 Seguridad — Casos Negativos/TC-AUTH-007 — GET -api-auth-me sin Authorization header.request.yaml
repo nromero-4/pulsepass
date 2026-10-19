@@ -1,0 +1,11 @@
+$kind: http-request
+name: TC-AUTH-007 — GET /api/auth/me sin Authorization header
+description: |-
+  **Objetivo:** Verificar 401 sin header.
+
+  **HTTP Esperado:** 401
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+headers:
+  Accept: application/json
+order: 1000

@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-SEC-013 — GET /api/events/{eventCode}/tickets/paid (USER intenta, falla 403)
+description: |-
+  **Objetivo:** USER no puede listar tickets pagados.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/events/{{publishedEventCode}}/tickets/paid"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+order: 9000

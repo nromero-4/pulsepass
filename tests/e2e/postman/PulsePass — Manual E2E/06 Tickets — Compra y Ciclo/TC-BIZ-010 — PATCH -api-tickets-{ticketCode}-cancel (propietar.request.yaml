@@ -1,0 +1,21 @@
+$kind: http-request
+name: TC-BIZ-010 — PATCH /api/tickets/{ticketCode}/cancel (propietario cancela)
+description: |-
+  **Objetivo:** USER_A cancela su ticket PAID.
+
+  **Precondiciones:** {{ticketCancelableCode}} con status=PAID, fecha evento futura.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: TicketResponse con status=CANCELLED
+  - Verificar con GET que cambió a CANCELLED
+  - Ticket no PAID → 409
+  - Evento pasado → 409
+url: "{{baseUrl}}/api/tickets/{{ticketCancelableCode}}/cancel"
+method: PATCH
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+order: 10000

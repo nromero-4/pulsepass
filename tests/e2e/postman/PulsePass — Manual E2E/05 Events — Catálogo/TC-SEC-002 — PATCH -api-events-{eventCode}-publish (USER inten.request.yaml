@@ -1,0 +1,12 @@
+$kind: http-request
+name: TC-SEC-002 — PATCH /api/events/{eventCode}/publish (USER intenta, falla 403)
+description: |-
+  **Objetivo:** USER no puede publicar.
+
+  **HTTP Esperado:** 403
+url: "{{baseUrl}}/api/events/{{draftEventCode}}/publish"
+method: PATCH
+headers:
+  Authorization: Bearer {{userAToken}}
+  Content-Type: application/json
+order: 8000

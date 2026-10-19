@@ -1,0 +1,19 @@
+$kind: http-request
+name: E2E-EVT-04 — PATCH /api/events/{eventCode}/publish (ADMIN publica)
+description: |-
+  **Objetivo:** Cambiar estado de DRAFT a PUBLISHED.
+
+  **Precondiciones:** {{draftEventCode}} en DRAFT, fecha futura, venue activo.
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: EventResponse con status=PUBLISHED
+  - Verificar con GET /api/events/{{draftEventCode}} que aparece en publicados
+url: "{{baseUrl}}/api/events/{{draftEventCode}}/publish"
+method: PATCH
+headers:
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+order: 7000

@@ -1,0 +1,18 @@
+$kind: http-request
+name: TC-BIZ-005 — GET /api/events/by-artist?stageName=... (tras asociar)
+description: |-
+  **Objetivo:** Consultar eventos por artista (público, solo PUBLISHED).
+
+  **HTTP Esperado:** 200
+
+  **Revisión Manual:**
+  - Status: 200
+  - Body: Array con evento asociado si está PUBLISHED
+  - Sin borradores
+url: "{{baseUrl}}/api/events/by-artist?stageName={{artistStageName}}"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  stageName: "{{artistStageName}}"
+order: 10000

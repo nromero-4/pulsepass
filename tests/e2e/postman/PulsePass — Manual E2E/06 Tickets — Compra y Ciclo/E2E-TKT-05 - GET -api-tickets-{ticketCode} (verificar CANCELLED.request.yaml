@@ -1,0 +1,12 @@
+$kind: http-request
+name: E2E-TKT-05 - GET /api/tickets/{ticketCode} (verificar CANCELLED persistido)
+description: |-
+  **Objetivo:** Verificar que la cancelacion persiste.
+
+  **HTTP Esperado:** 200; el body debe tener status=CANCELLED.
+url: "{{baseUrl}}/api/tickets/{{ticketCancelableCode}}"
+method: GET
+headers:
+  Authorization: Bearer {{userAToken}}
+  Accept: application/json
+order: 11000
