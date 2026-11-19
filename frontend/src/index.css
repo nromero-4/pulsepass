@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-marca-50: #eef2ff;
+  --color-marca-500: #6366f1;
+  --color-marca-600: #4f46e5;
+  --color-marca-700: #4338ca;
+  --color-acento-500: #f43f5e;
+  --font-titulo: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-cuerpo: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-slate-50 font-cuerpo text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-titulo;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-marca-600 dark:outline-indigo-300;
+  }
+  ::selection {
+    @apply bg-indigo-200 text-indigo-950;
+  }
+}
+
+@layer components {
+  main:has(.barra-compra) + footer {
+    @apply max-md:mb-24;
+  }
+
+  .contenedor {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+  .estrecho {
+    @apply mx-auto w-full max-w-3xl;
+  }
+  .superficie {
+    @apply min-w-0 rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900;
+  }
+  .secundario {
+    @apply text-slate-600 dark:text-slate-400;
+  }
+  .enlace {
+    @apply font-semibold text-marca-700 hover:underline dark:text-indigo-300;
+  }
+}
