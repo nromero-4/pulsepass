@@ -1,0 +1,52 @@
+name: pulsepass
+
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pulsepass}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Completa POSTGRES_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:${PULSEPASS_DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  backend:
+    image: pulsepass-backend:local
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-pulsepass}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Completa POSTGRES_PASSWORD en .env}
+      PULSEPASS_JWT_SECRET_BASE64: ${PULSEPASS_JWT_SECRET_BASE64:?Completa PULSEPASS_JWT_SECRET_BASE64 en .env}
+      # El tráfico de desarrollo se publica únicamente en 127.0.0.1.
+      PULSEPASS_REQUIRE_HTTPS: "false"
+    ports:
+      - "127.0.0.1:${PULSEPASS_BACKEND_PORT:-8080}:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:9.19
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?Completa PGADMIN_DEFAULT_EMAIL en .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?Completa PGADMIN_DEFAULT_PASSWORD en .env}
+      PGADMIN_DISABLE_POSTFIX: "1"
+    ports:
+      - "127.0.0.1:${PULSEPASS_PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  pgadmin-data:
