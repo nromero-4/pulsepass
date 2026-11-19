@@ -1,6 +1,94 @@
 # PulsePass
 
-PulsePass es una API REST académica para consultar eventos, artistas y venues, registrar usuarios y gestionar tickets. Implementa las capas de persistencia, servicios y controladores con Java 21, Spring Boot 4, Spring MVC, Spring Data JPA, PostgreSQL y Flyway.
+PulsePass es una plataforma académica para consultar eventos, artistas y sedes y gestionar entradas. La API REST usa Java 21, Spring Boot y PostgreSQL. El cliente web de la Fase 5 está en [`frontend/`](./frontend).
+
+## Desarrollo local con Docker Compose
+
+Abre Docker Desktop y ejecuta los comandos desde la carpeta que contiene `pom.xml`. El archivo [`compose.yaml`](./compose.yaml) agrupa tres servicios bajo `pulsepass`. Los puertos publicados escuchan en `127.0.0.1`.
+
+| Servicio | Imagen | Puerto en Windows → puerto en Docker |
+| --- | --- | --- |
+| `database` | `postgres:16-alpine` | `5432` → `5432` |
+| `backend` | `pulsepass-backend:local`, construida con el [Dockerfile](./Dockerfile) | `8080` → `8080` |
+| `pgadmin` | `dpage/pgadmin4:9.19` | `5050` → `80` |
+
+1. Copia [`.env.example`](./.env.example) a `.env` en la raíz y completa `POSTGRES_PASSWORD`, `PGADMIN_DEFAULT_EMAIL` y `PGADMIN_DEFAULT_PASSWORD`. Elige una contraseña para PostgreSQL y otra para entrar a pgAdmin. Para generar el valor de `PULSEPASS_JWT_SECRET_BASE64`, ejecuta esto en PowerShell y pega el resultado en `.env`.
+
+   ```powershell
+   $jwtKey = [byte[]]::new(32)
+   [System.Security.Cryptography.RandomNumberGenerator]::Fill($jwtKey)
+   [Convert]::ToBase64String($jwtKey)
+   ```
+
+2. Valida la configuración y levanta los tres servicios. Compose compila el backend con Maven y Java 21. Después de que la base esté lista, Spring Boot aplica las migraciones de Flyway.
+
+   ```powershell
+   docker compose config --quiet
+   docker compose up -d --build
+   docker compose ps
+   docker compose logs -f backend
+   ```
+
+   Cuando el backend termine de arrancar, sal de los logs con `Ctrl+C` y prueba la API.
+
+   ```powershell
+   Invoke-RestMethod 'http://127.0.0.1:8080/api/venues/active'
+   ```
+
+   Una respuesta vacía es normal hasta que cargues sedes. Si prefieres iniciar un servicio a la vez, usa `docker compose up -d database`, luego `docker compose up -d --build backend` y por último `docker compose up -d pgadmin`.
+
+3. Abre [pgAdmin](http://127.0.0.1:5050) con el correo y la contraseña de `PGADMIN_DEFAULT_*`. En **Servers → Register → Server**, escribe `PulsePass` como nombre. En **Connection**, usa el host `database`, el puerto `5432`, la base de mantenimiento `pulsepass` y las credenciales `POSTGRES_USER` y `POSTGRES_PASSWORD` de `.env`. Si cambiaste `POSTGRES_DB`, usa ese nombre. `database` es el nombre que los contenedores utilizan en la red de Compose.
+
+4. Arranca el frontend en Windows con los comandos de la sección siguiente. Para apuntar al puerto de Docker, configura `PULSEPASS_API_TARGET=http://127.0.0.1:8080` en `frontend/.env`. Si otro proyecto ya usa un puerto, cambia el valor `PULSEPASS_*_PORT` correspondiente en el `.env` de la raíz. Si cambias `PULSEPASS_BACKEND_PORT`, usa ese mismo puerto en la prueba de la API y en `PULSEPASS_API_TARGET`.
+
+Para cargar los datos de demostración en la base de Compose, después de que arranque el backend:
+
+```powershell
+Get-Content -Raw -LiteralPath 'tests/e2e/fixtures/seed-e2e.sql' |
+  docker compose exec -T database psql -v ON_ERROR_STOP=1 -U postgres -d pulsepass
+```
+
+Usa tus valores de usuario y base si los cambiaste. `docker compose down` detiene y retira los contenedores del proyecto y conserva los volúmenes de PostgreSQL y pgAdmin.
+
+## Frontend de la Fase 5
+
+Se necesita Node.js 22.22 o superior y una instancia de la API en ejecución. Puedes levantarla con Docker Compose o ejecutar PostgreSQL y Spring Boot según las secciones **Base de datos**, **Configuración JWT** y **Ejecutar la aplicación**. En otra terminal, desde la raíz del proyecto:
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Abre [http://localhost:5173](http://localhost:5173) o la dirección que indique Vite. En macOS y Linux, usa `npm` en los mismos comandos. Vite redirige las llamadas `/api` a `http://localhost:8080` por defecto. Si el backend usa otro puerto, copia [`frontend/.env.example`](./frontend/.env.example) a `frontend/.env` y ajusta `PULSEPASS_API_TARGET`. La variable solo configura el proxy de Vite. Para servir el resultado de `build` con otro servidor, dirige `/api` a Spring Boot en el mismo origen y sirve `index.html` para las rutas de la aplicación.
+
+| Acceso | Rutas principales | Acciones |
+| --- | --- | --- |
+| Visitante | `/`, `/eventos`, `/artistas`, `/sedes`, `/login`, `/registro` | Explorar el catálogo y crear una cuenta |
+| USER | `/cuenta`, `/eventos/:eventCode`, `/mis-tickets` | Comprar, consultar y cancelar entradas propias |
+| STAFF | `/staff/validacion`, `/staff/eventos` | Consultar entradas pagadas y registrar el ingreso |
+| ADMIN | `/admin/eventos`, `/admin/eventos/nuevo` | Crear borradores, buscarlos por código, asociar artistas y publicar eventos |
+
+Para una demostración en una **base local de pruebas**, ejecuta [`tests/e2e/fixtures/seed-e2e.sql`](./tests/e2e/fixtures/seed-e2e.sql) después de que Flyway termine. Desde la raíz, si usas el contenedor `pulsepass-db` que se muestra más abajo:
+
+```powershell
+Get-Content -Raw -LiteralPath 'tests/e2e/fixtures/seed-e2e.sql' |
+  docker exec -i pulsepass-db psql -v ON_ERROR_STOP=1 -U postgres -d pulsepass
+```
+
+El SQL agrega sedes y las cuentas de prueba `admin_e2e` y `staff_e2e`, con contraseñas desechables descritas en el propio archivo. Crea el usuario asistente desde `/registro`. Con el rol ADMIN, crea y publica un evento para que aparezca en la cartelera. Con USER, compra dos entradas. Puedes cancelar una desde Mis tickets y marcar la otra como usada con STAFF.
+
+Desde `frontend/`:
+
+```powershell
+npm.cmd run lint
+npm.cmd run build
+npm.cmd test
+```
+
+El build verifica TypeScript estricto y genera `frontend/dist/`. Las pruebas usan Vitest, Testing Library y MSW y pueden ejecutarse sin el backend. Incluyen comprobaciones de accesibilidad del DOM con axe-core.
+
+React Router carga las páginas por demanda. TanStack Query administra los datos de la API y actualiza las vistas después de cada operación. Zod valida las respuestas y se integra con React Hook Form en los formularios. La sesión dura lo que indique el JWT y se conserva en la pestaña. Spring Boot aplica la autorización y las reglas de compra.
 
 ## Stack tecnológico
 
@@ -17,8 +105,7 @@ PulsePass es una API REST académica para consultar eventos, artistas y venues, 
 
 La API expone operaciones sobre venues, eventos, artistas, usuarios y tickets. Los Controllers delegan reglas de negocio en los Services, reciben y devuelven DTOs, y usan un handler global para responder errores con un formato uniforme.
 
-Incluye registro, autenticación stateless con JWT y autorización por roles/propiedad. No incluye frontend,
-pasarela de pagos, notificaciones ni generación de códigos QR.
+Incluye registro, autenticación stateless con JWT y autorización por roles y propiedad del recurso.
 
 ## Endpoints
 
